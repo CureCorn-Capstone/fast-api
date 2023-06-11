@@ -12,7 +12,7 @@ app = FastAPI()
 
 origins = [
     "http://localhost",
-    "http://localhost:3000",
+    "http://localhost:3000",    
 ]
 app.add_middleware(
     CORSMiddleware,
@@ -24,8 +24,8 @@ app.add_middleware(
 
 MODEL = tf.keras.models.load_model("model.h5")
 
-CLASS_NAMES = ["Leaf Spot", 'Leaf Blight', 'Common Rust', 'Sehat']
-MESSAGE_NAMES = ["Bercak", 'Hawar', 'Karat', 'Sehat']
+CLASS_NAMES = ["Leaf Spot", "Leaf Blight", "Common Rust", "Healthy"]
+# MESSAGE_NAMES = ["Bercak", 'Hawar', 'Karat', 'Healthy']
 
 @app.get("/", response_class=HTMLResponse)
 async def home():
@@ -130,24 +130,28 @@ async def predict(
     predictions = MODEL.predict(img_batch)
 
     predicted_class_index = np.argmax(predictions[0])
-    predicted_class = MESSAGE_NAMES[predicted_class_index]
-    predicted_message = CLASS_NAMES[predicted_class_index]
-    confidence = float(np.max(predictions[0]))
+    predicted_class = CLASS_NAMES[predicted_class_index]
+    # confidence = float(np.max(predictions[0]))
 
-    if predicted_class_index == 0:
-        condition = "Sehat"
-        message = "Daun jagung anda tidak terdeteksi penyakit"
+    # if predicted_class_index == 0:
+    #     condition = "Invalid Object!"
+    #     message = "Take a photo of corn leaves!"
+
+    if predicted_class == 'Healthy':
+        condition = "Healthy"
+        message = "Your corn leaves are not detected with any disease"
+        
     else:
-        condition = "Daun jagung anda terdeteksi " + predicted_class.lower()
-        message = predicted_message
+        condition = "Your corn leaves are detected with " + predicted_class.lower() + " disease"
+        message = predicted_class
 
     response = {
         'Condition': condition,
         'Message': message,
-        'Confidence': confidence
+        # 'Confidence': confidence
     }
 
     return response
 
 if __name__ == "__main__":
-    uvicorn.run(app, host='localhost', port=8000)
+    uvicorn.run(app, host='0.0.0.0', port=8000)
